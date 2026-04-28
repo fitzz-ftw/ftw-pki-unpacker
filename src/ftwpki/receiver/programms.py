@@ -28,7 +28,7 @@ get_password = getpass.getpass
 def prog_receive_certs(argv: list[str] | None = None, **kwargs):
     try:
         # SECTION - Configuration
-        if not config_file_path.is_file():
+        if not config_file_path().is_file():
             write_example_config(toml_conf_str)
         config = toml2config()
         parser = ReceiverCliParser()

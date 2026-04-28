@@ -41,7 +41,7 @@ The ftwpkirecieiver programm
 
 >>> from ftwpki.baselibs.app_dirs import config_file_path
 
->>> if not config_file_path.is_file():
+>>> if not config_file_path().is_file():
 ...     write_example_config(toml_conf_str)
 
 >>> from ftwpki.baselibs.toml_utils import toml2config
