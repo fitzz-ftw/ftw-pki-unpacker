@@ -1,5 +1,5 @@
-Receiver
-=========
+Command Line Interface for Receiver
+===================================
 
 
 

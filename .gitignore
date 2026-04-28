@@ -22,6 +22,7 @@ doc/orig
 
 # Doctest generated files
 doc/source/devel/testhome/.config
+doc/source/devel/testhome/.local
 doc/source/devel/testhome/testoutput/*
 
 
