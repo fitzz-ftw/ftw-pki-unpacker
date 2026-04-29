@@ -444,7 +444,7 @@ autosummary_context.update(class_extention_context)
 coverage_statistics_to_stdout = True
 coverage_show_missing_items = True
 coverage_modules = [
-    "ftwpki.password",
+    "ftwpki.receiver",
 ]
 
 # NOTE - This list uses REGULAR EXPRESSIONS, not shell-style globs.

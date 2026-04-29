@@ -26,6 +26,25 @@ get_password = getpass.getpass
 
 
 def prog_receive_certs(argv: list[str] | None = None, **kwargs):
+    """
+    Execute the main process for receiving and installing certificates.
+
+    This function coordinates the configuration setup, private key loading,
+    package decryption, and the extraction of certificates and keys to
+    their configured target directories.
+
+    :param argv: List of command line arguments. Defaults to None.
+    :param kwargs: Additional keyword arguments for future extensions.
+    :raises FileNotFoundError: If the private key file or the certificate
+                               package does not exist.
+    :raises PermissionError: If the application cannot create directories
+                             or write files due to missing permissions.
+    :raises ValueError: If the private key loading or package decryption fails.
+    :raises TOMLDecodeError: If the configuration file has an invalid format.
+    :raises Exception: For any other errors during the process.
+    :returns: Zero if the process is successful, or one if an error
+              or a user interrupt occurs.
+    """
     try:
         # SECTION - Configuration
         if not config_file_path().is_file():

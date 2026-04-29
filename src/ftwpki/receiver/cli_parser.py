@@ -38,6 +38,8 @@ class ReceiverCliParser(ArgparseFix311):
     ) -> ReceiverCliProtocol:
         return cast(ReceiverCliProtocol, super().parse_args(args, namespace))
 
+def get_parser() -> ReceiverCliParser:
+    return ReceiverCliParser()
 
 if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
