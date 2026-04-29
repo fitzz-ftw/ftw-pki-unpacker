@@ -6,8 +6,8 @@
 cli_parser
 ===============================
 
-
-Modul cli_parser documentation
+Parser for the certificate receiver CLI, managing private key identification
+and transport package paths. (rw)
 """
 
 from argparse import Namespace
@@ -18,27 +18,54 @@ from ftwpki.baselibs.cli_parser import ArgparseFix311
 from ftwpki.receiver.protocols import ReceiverCliProtocol
 
 
+# CLASS - ReceiverCliParser
 class ReceiverCliParser(ArgparseFix311):
+    """
+    Parser for certificate reception arguments. (rw)
+
+    Handles the input for the local private key filename and the path
+    to the encrypted transport package.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
+        """
+        Configure the argument parser with receiver-specific options. (ro)
+        """
         self.add_argument(
             "private_key",
-            help="The private key file name.",
+            help="The filename of the local private key used for decryption.",
         )
         self.add_argument(
             "cert_file",
-            help="The path of the encrypted certificate package ",
+            help="The file path of the encrypted certificate transport package.",
         )
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> ReceiverCliProtocol:
+        """
+        Parse command-line arguments and cast to ReceiverCliProtocol. (ro)
+
+        :param args: List of command-line argument strings.
+        :param namespace: Existing Namespace object to populate.
+        :returns: Arguments adhering to the ReceiverCliProtocol interface.
+        """
         return cast(ReceiverCliProtocol, super().parse_args(args, namespace))
 
+
+# !CLASS - ReceiverCliParser
+
+
 def get_parser() -> ReceiverCliParser:
+    """
+    Factory function to retrieve a configured ReceiverCliParser instance. (ro)
+
+    :returns: A new instance of ReceiverCliParser.
+    """
     return ReceiverCliParser()
 
 if __name__ == "__main__":  # pragma: no cover
