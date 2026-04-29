@@ -79,8 +79,8 @@ ReceiverCliParser(prog='ftwpkirecieiver',
 usage: ftwpkirecieiver [-h] private_key cert_file
 <BLANKLINE>
 positional arguments:
-    private_key  The private key file name.
-    cert_file    The path of the encrypted certificate package
+    private_key  The filename of the local private key used for decryption.
+    cert_file    The file path of the encrypted certificate transport package.
 <BLANKLINE>
 options:
     -h, --help   show this help message and exit

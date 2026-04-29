@@ -7,7 +7,7 @@ programms
 ===============================
 
 
-Modul programms documentation
+Main entry points for the certificate receiver process. (rw)
 """
 
 import getpass
