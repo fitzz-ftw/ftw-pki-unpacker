@@ -6,17 +6,29 @@
 protocols
 ===============================
 
-
-Modul protocols documentation
+Structural interfaces for the certificate receiver package. (ro)
 """
 
 from pathlib import Path
 from typing import Protocol
 
 
+# CLASS - ReceiverCliProtocol
 class ReceiverCliProtocol(Protocol):
-    private_key:str
-    cert_file:str
+    """
+    Structural interface for receiver command-line arguments. (ro)
+
+    Defines the required attributes to identify the local private key
+    and the incoming encrypted transport package.
+    """
+
+    private_key: str
+    """Filename or path to the local private key used for decryption."""
+    cert_file: str
+    """Path to the encrypted ZIP transport package (.zip.enc)."""
+
+
+# !CLASS - ReceiverCliProtocol
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
