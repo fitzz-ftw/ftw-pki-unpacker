@@ -19,6 +19,8 @@ doc/builxml
 doc/new
 doc/old
 doc/orig
+git-changelog*
+git_changelog*
 
 # Doctest generated files
 doc/source/devel/testhome/.config

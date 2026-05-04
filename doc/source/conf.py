@@ -214,7 +214,7 @@ def setup(app):
 
 
 # -- Project information -----------------------------------------------------
-project = "ftw-devtools"
+project = "ftw-pki-receiver"
 copyright = "2026, Fitzz TeΧnik Welt"
 author = "Fitzz TeΧnik Welt"
 html_show_copyright = True
