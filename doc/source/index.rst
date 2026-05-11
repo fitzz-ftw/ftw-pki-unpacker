@@ -1,18 +1,21 @@
-.. ftw-devtools documentation master file
+.. ftw-pki documentation master file
 
-ftw-devtools: Testing Infrastructure Utility
-============================================
+Welcome to the documentation!
+=============================
 
-`ftw-devtools` is a focused utility designed to streamline development 
-and testing workflows. It provides robust mechanisms to isolate 
-test environments and manage infrastructure components without 
-compromising the host system.
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+
+
+
+Documentation
+-------------
 
 .. toctree::
    :maxdepth: 1
    :caption: User Documentation
 
-   user/receiver
+   user/cli_receiver
 
 
 

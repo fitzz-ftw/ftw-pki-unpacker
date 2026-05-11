@@ -25,7 +25,7 @@ from ftwpki.receiver.cli_parser import ReceiverCliParser
 get_password = getpass.getpass
 
 
-def prog_receive_certs(argv: list[str] | None = None, **kwargs):
+def prog_receive_certs(argv: list[str] | None = None, **kwargs)->int:
     """
     Execute the main process for receiving and installing certificates.
 

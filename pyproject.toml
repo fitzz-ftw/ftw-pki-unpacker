@@ -45,7 +45,7 @@ license = "LGPL-2.1-or-later"
 # Repository = "https://github.com/fitzz-ftw/ftw-patch.git"
 
 [project.scripts]
-#ftwpkireceiver = "ftwpki.receiver.programms:prog_receive"
+ftwpkireceiver = "ftwpki.receiver.programms:prog_receive_certs"
 
 [project.optional-dependencies]
 doc = [
@@ -60,7 +60,7 @@ doc = [
   "sphinxcontrib-mermaid",
 ]
 
-dev = ["ftw-pki-password[test,doc,lint]", "esbonio==0.16.5"]
+dev = ["ftw-pki-receiver[test,doc,lint]", "esbonio==0.16.5"]
 lint = ["ruff"]
 test = ["pytest", "pytest-mock", "pytest-cov", "ftw-devtools"]
 
