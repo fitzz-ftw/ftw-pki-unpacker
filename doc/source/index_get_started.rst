@@ -10,4 +10,7 @@ supported Python versions (3.11 - 3.15).
    :maxdepth: 1
    :caption: Module Guides:
 
-   devel/get_started_password
+   devel/get_started_cli_parser
+   devel/get_started_programms
+   devel/get_started_run_programms
+   devel/get_started_protocols

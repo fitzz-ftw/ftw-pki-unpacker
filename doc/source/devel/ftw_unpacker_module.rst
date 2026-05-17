@@ -1,7 +1,7 @@
-FTW PKI Receiver Tool
+FTW PKI Unpacker Tool
 ######################
 
-.. automodule:: ftwpki.receiver
+.. automodule:: ftwpki.unpacker
 
 .. autosummary::
     :toctree: api

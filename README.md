@@ -1,77 +1,44 @@
-# securify
+# ftw-pki-receiver
 
-**Secure and robust input handling for Python applications.**
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: LGPL v2.1](https://img.shields.io/badge/License-LGPL_v2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+[![Coverage: 93%](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)]
 
-`securify` is a lightweight library designed to make user interactions more secure. 
-Its primary goal is to provide reliable ways to capture sensitive information, like 
-passwords, while enforcing strict security constraints.
+The secure ingestion, validation, and decryption gateway of the **ftw-pki** suite. This repository provides the `ftwpkireceiver` utility.
 
-## Key Features
+## 🛠 Why do we need a Receiver?
 
-* **Security First:** Enforces interactive terminal (TTY) usage to prevent insecure 
-    input processing.
-* **Bot Protection:** Built-in time delay checks to prevent automated script 
-    attacks.
-* **Double-Entry Verification:** Simple logic to ensure users enter identical 
-    passwords.
-* **Developer Friendly:** Fully type-hinted, 100% test coverage, and clean 
-    exception hierarchies.
+In high-security PKI environments, signing entities (especially Root and Intermediate CAs) often operate in restricted or offline environments. They should never be directly exposed to raw, unvalidated input from the network.
 
-## Installation
+The **Receiver** acts as a "buffer, filter, and delivery endpoint":
 
-```bash
-pip install .
-```
+1. **Ingestion & Sanitization:** It collects Certificate Signing Requests (CSRs) and pre-validates them against defined security policies before they ever reach the signing tools.
+2. **Security Boundary:** It ensures that only well-formed and authorized requests are passed forward, protecting the sensitive signing infrastructure from malformed data or injection attacks.
+3. **Secure Decryption:** Signed certificates are returned encrypted with the sender's public key. The Receiver uses the corresponding private key to decrypt the payload, making the certificate available to the end-user.
 
-## Quick Start
+## ✨ Features
 
-The core of the library is the `PasswordDoubleCheck` class. It ensures that a 
-password is typed correctly twice and that the user is actually sitting at a 
-terminal.
+* **Automated Configuration:** On its first run, the tool automatically initializes the necessary configuration files in the user's config directory (e.g., `~/.config/ftwpki/`).
+* **Integrity Checks:** Verifies the cryptographic signatures of incoming CSRs to ensure they haven't been tampered with during transit.
+* **Minimalist CLI:** Designed to be as simple as possible to minimize the attack surface, requiring only essential positional arguments.
 
-```python
-from securify.input.password import PasswordDoubleCheck
-from securify.input.exceptions import PasswordError
+## 🚀 Quick Start
 
-# Initialize with a 1.5-second minimum delay
-checker = PasswordDoubleCheck(min_delay=1.5)
-
-try:
-    password = checker()
-    print("Password successfully verified!")
-except PasswordError as e:
-    # Handles Mismatch, Speed, or Terminal errors
-    print(f"Verification failed: {e}")
-```
-
-## Technical Background: Why TTY?
-
-By default, `securify` rejects input that does not come from a real terminal. This 
-ensures that the tool **only processes input from a secure, interactive source**. 
-
-If the input is provided through a pipe or another non-interactive process, the 
-checker will reject the operation. This prevents the application from being used in 
-insecure workflows where passwords might be handled through unsafe channels.
-
-## Development
-
-`securify` is built with a focus on stability and cross-version compatibility. It 
-is tested against Python 3.11 up to 3.15-alpha.
-
-### Running Tests
-We use `tox` to manage environments and `pytest` for testing:
+Since the tool handles its own configuration, you can start processing packages immediately.
 
 ```bash
-tox
+# Usage: ftwpkireceiver <private_key> <received_package>
+ftwpkireceiver ./path/to/private_key.pem ./path/to/encrypted_package.bin
 ```
 
-### Building Documentation
-The documentation is built with Sphinx:
+## 📖 Documentation
 
-```bash
-cd doc
-make html
-```
+* **Technical Manual:** Detailed information on validation rules and security handshakes is available in the `doc/source/` directory.
+* **User Config:** If you need to adjust policies, refer to the config file automatically created in your user profile.
 
-## License
-LGPLv2 or above.
+## 📄 License
+
+This project is licensed under the **LGPL v2.1 (or later)**.
+
+---
+© 2026 ftw-pki Contributors

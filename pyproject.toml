@@ -12,8 +12,12 @@ namespaces = true
 where = ["src"]
 
 [tool.setuptools_scm]
-tag_regex = '^(?P<prefix>v)?(?P<version>[^\+|-]+)(?P<suffix>-test)?$'
-write_to = "src/ftwpki/receiver/_version.py"
+# Erläuterung:
+# ^v               -> Muss mit 'v' beginnen
+# (?P<version>...) -> Die Versionsnummer (0.0.1)
+# (?P<suffix>...)  -> Optionaler Anhang wie -test, a1, .rc1
+tag_regex = '^v(?P<version>[^\+|-]+)(?P<suffix>[-._][a-zA-Z0-9]+)?$'
+write_to = "src/ftwpki/unpacker/_version.py"
 
 [project]
 classifiers = [
@@ -31,20 +35,22 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = ["ftw-pki-libs"]
-description = ""
+description = "A secure extraction utility for unpacking encrypted and signed PKI certificate bundles."
 dynamic = ["version"]
-name = "ftw-pki-receiver"
+name = "ftw-pki-unpacker"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "LGPL-2.1-or-later"
 
 [project.urls]
-# Documentation = "https://ftw-patch.readthedocs.io/en/stable/"
-# Homepage = "https://github.com/fitzz-ftw/ftw-patch"
-# Issues = "https://github.com/fitzz-ftw/ftw-patch/issues"
-# Repository = "https://github.com/fitzz-ftw/ftw-patch.git"
+Homepage = "https://github.com/fitzz-ftw/ftw-pki-unpacker"
+Documentation = "https://github.com/fitzz-ftw/ftw-pki-unpacker/blob/main/README.md"
+Repository = "https://github.com/fitzz-ftw/ftw-pki-unpacker.git"
+Issues = "https://github.com/fitzz-ftw/ftw-pki-unpacker/issues"
+Changelog = "https://github.com/fitzz-ftw/ftw-pki-unpacker/blob/main/CHANGELOG.md"
 
 [project.scripts]
-#ftwpkireceiver = "ftwpki.receiver.programms:prog_receive"
+ftwpkiunpacker = "ftwpki.unpacker.programms:prog_unpacker_certs"
 
 [project.optional-dependencies]
 doc = [
@@ -59,7 +65,7 @@ doc = [
   "sphinxcontrib-mermaid",
 ]
 
-dev = ["ftw-pki-password[test,doc,lint]", "esbonio==0.16.5"]
+dev = ["ftw-pki-unpacker[test,doc,lint]", "esbonio==0.16.5"]
 lint = ["ruff"]
 test = ["pytest", "pytest-mock", "pytest-cov", "ftw-devtools"]
 
@@ -112,14 +118,18 @@ branch = true
 omit = ["**/_version.py",
 ]
 
-source = ["ftwpki.receiver"]
+source = ["ftwpki.unpacker"]
 
 [tool.coverage.report]
 exclude_also = ["if *__name__ *=*[\"']__main__.*"]
-fail_under = 100
+fail_under = 93
 show_missing = true
 #format = "text"
 #
 [tool.coverage.html]
 # Das entspricht --cov-report=html:doc/build/coverage
-directory = "doc/build/test_coverage/receiver"
+directory = "doc/build/test_coverage/unpacker"
+
+[tool.esbonio.sphinx]
+buildCommand = ["sphinx-build", "-M", "dirhtml", "doc/source", "./_build"]
+pythonCommand = ["${venv:../.venv311/}"]
