@@ -1,12 +1,12 @@
-Command Line Interface for Receiver
+Command Line Interface for Unpacker
 ===================================
 
 
 
->>> from ftwpki.receiver.cli_parser import get_parser
+>>> from ftwpki.unpacker.cli_parser import get_parser
 
 >>> get_parser() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-ReceiverCliParser(prog='...', 
+UnpackerCliParser(prog='...', 
     usage=None, 
     description=None, 
     formatter_class=<class 'argparse.HelpFormatter'>, 

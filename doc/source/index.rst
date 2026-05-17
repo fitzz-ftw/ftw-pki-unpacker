@@ -15,7 +15,7 @@ Documentation
    :maxdepth: 1
    :caption: User Documentation
 
-   user/cli_receiver
+   user/cli_unpacker
 
 
 
@@ -29,7 +29,7 @@ Documentation
    :maxdepth: 2
    :caption: Developer Documentation:
 
-   devel/ftw_receiver_module
+   devel/ftw_unpacker_module
 
 .. toctree::
    :maxdepth: 1

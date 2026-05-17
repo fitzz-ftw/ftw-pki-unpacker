@@ -1,29 +1,38 @@
-The ftwpkirecieiver programm
+The ftwpki-unpacker program
 =============================
 
 .. SECTION - Setup Test-Environment
 
->>> test_transport_package="testtransport.zip.enc"
+>>> test_transport_package = "testtransport.zip.enc"
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
->>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
+
+Schritt 1: Initialisieren der frischen Sandbox via ftw-devtools-0.3.0
+>>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"),
+...     appname="ftwpki", appauthor="FitzzTeXnikWelt")
 >>> env.setup()
->>> _ = env.copy2cwd(test_transport_package)
->>> Path("tests_pki_root").mkdir(parents=True, exist_ok=True)
->>> _ = env.copy2cwd("tests_pki_root/ca.crt")
->>> _ = env.copy2cwd("tests_pki_root/ca.key")
+>>> env.clean_home()
+>>> env.clean_output()
+
+Schritt 2: Wir instanziieren die reale IntermedPKIConfig. Sie schreibt die 
+Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
+>>> from ftwpki.baselibs.configuration import UserPKIConfig
+>>> cfg = UserPKIConfig()
+>>> cfg.set_config()
+
+>>> _ = env.copy2config("tests_pki_root/ca.key",".private/ca.key")
+
+>>> _ =env.copy2cwd("testtransport.zip.enc")
 
 .. !SECTION - Setup Test-Environment
 
 .. SECTION - Perpare Test 
 
 >>> import time
-
 >>> class StubPassword:
 ...     def __init__(self):
 ...         self.generate = self._generate()
 ...     def _generate(self):
-...         # first run 
 ...         yield "1234"
 ...     def __call__(self, prompt):
 ...         print(prompt, flush=True)
@@ -31,108 +40,75 @@ The ftwpkirecieiver programm
 
 >>> stubpwinput = StubPassword()
 
->>> sys_argv = ["ca.key",test_transport_package,]
+Schritt 3: Globales getpass patchen, BEVOR das Programmmodul geladen wird!
+>>> import getpass
+>>> getpass.getpass = stubpwinput
+
+Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Patch:
+>>> from ftwpki.unpacker import programms
+
+>>> 
+
+>>> sys_argv = ["ca.key", test_transport_package]
 
 .. !SECTION - Perpare Test 
 
->>> get_password=stubpwinput
+.. SECTION - Start programm: prog_receive_certs
 
 .. SECTION - Configuration
 
->>> from ftwpki.baselibs.config_file_create import write_example_config, toml_conf_str 
+>>> from ftwpki.baselibs.configuration import ReaderPKIConfig
 
->>> from ftwpki.baselibs.app_dirs import config_file_path
+>>> config:ReaderPKIConfig = ReaderPKIConfig()
 
->>> if not config_file_path().is_file():
-...     write_example_config(toml_conf_str)
+>>> config.read_main_config()
 
->>> from ftwpki.baselibs.toml_utils import toml2config
+>>> config.default_config
+'user.toml'
 
->>> config = toml2config()
->>> config #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'private_keys': '~/.config/ftwpki/.private', 
- 'passphrases': '~/.config/ftwpki/.private', 
- 'csr_configs': '~/.config/ftwpki/csr', 
- 'policies': '~/.config/ftwpki/policies', 
- 'public_data': '~/.local/share/ftwpki', 
- 'certs': '~/.local/share/ftwpki/certs', 
- 'chains': '~/.local/share/ftwpki/chains', 
- 'ext_cert': '.crt', 
- 'ext_public': '.pub', 
- 'ext_chain': '.pem', 
- 'ext_csr_conf': '.toml', 
- 'ext_policy': '.policy', 
- 'ext_signedcert': '.zip.enc'}
+>>> from_file:dict[str,str]={"configname": config.default_config,}
 
->>> from ftwpki.receiver.cli_parser import ReceiverCliParser
+>>> from ftwpki.unpacker.cli_parser import UnpackerCliParser
 
->>> parser = ReceiverCliParser("ftwpkirecieiver")
+>>> parser:UnpackerCliParser  = UnpackerCliParser()
+>>> parser.set_defaults(**from_file)
 
->>> parser #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-ReceiverCliParser(prog='ftwpkirecieiver', 
-    usage=None, description=None, 
-    formatter_class=<class 'argparse.HelpFormatter'>, 
-    conflict_handler='error', 
-    add_help=True)
+>> parser.print_help()
 
->>> parser.print_help() #doctest: +NORMALIZE_WHITESPACE
-usage: ftwpkirecieiver [-h] private_key cert_file
-<BLANKLINE>
-positional arguments:
-    private_key  The filename of the local private key used for decryption.
-    cert_file    The file path of the encrypted certificate transport package.
-<BLANKLINE>
-options:
-    -h, --help   show this help message and exit
+>>> from ftwpki.unpacker.protocols import UnpackerCliProtocol
 
->>> args = parser.parse_args(sys_argv)
+>>> args:UnpackerCliProtocol = parser.parse_args(sys_argv)
 
 >>> args
-Namespace(private_key='ca.key', cert_file='testtransport.zip.enc')
+Namespace(private_key='ca.key', cert_file='testtransport.zip.enc', configname='user.toml')
 
-.. SECTION - Create Directories from Configuration for testing needs only
+>>> config.read_config(args.configname)
 
->>> dirs_to_create = [path for path in config if not path.startswith("ext")]
-
->>> dirs_to_create
-['private_keys', 'passphrases', 'csr_configs', 'policies', 'public_data', 'certs', 'chains']
-
->>> from ftwpki.baselibs.app_dirs import create_app_pathes
->>> pathconf=create_app_pathes(config,['private_keys','passphrases' ], *dirs_to_create)
-
-
-.. ANCHOR - Copy Privatkey and Certifikate
-
->>> from shutil import copy2
->>> priv_key_path=copy2("tests_pki_root/ca.key", Path(config['private_keys']).expanduser())
->>> cert_path=copy2("tests_pki_root/ca.crt", Path(config['certs']).expanduser())
-
-.. !SECTION - Create Directories from Configuration
 
 .. !SECTION - Configuration
 
 .. SECTION - Loading Certificate package and private key
 
->>> enc_value=Path(args.cert_file).read_bytes()
-
-
->>> current_private_key_path = pathconf['private_keys']/ args.private_key
-
 >>> from ftwpki.baselibs.core import load_private_key_from_pem
+>>> from ftwpki.baselibs.transport import RSAPrivateKey, decrypt_transport_package
 
->>> private_key = load_private_key_from_pem(current_private_key_path.read_bytes(), 
-...     get_password("Enter Password: ")) #doctest: +NORMALIZE_WHITESPACE
-Enter Password:
 
+
+Der Aufruf nutzt durch den frühen Import-Patch direkt den globalen Stub:
+>>> private_key:RSAPrivateKey = load_private_key_from_pem(
+...     (config.private_keys / args.private_key).read_bytes(), 
+...     getpass.getpass("Enter Password: ")
+... )
+Enter Password: 
 
 .. !SECTION - Loading Certificate package and private key
-
 
 .. SECTION - Decrypting the file 
 
 >>> from ftwpki.baselibs.transport import decrypt_transport_package
->>> decrypted_zip_bytes = decrypt_transport_package(
-...     enc_value,
+
+>>> decrypted_zip_bytes:bytes = decrypt_transport_package(
+...     Path(args.cert_file).read_bytes(),
 ...     private_key,
 ... )
 
@@ -144,51 +120,50 @@ True
 .. SECTION - Extraction and installation of the content.
 
 >>> from io import BytesIO
+
 >>> from zipfile import ZipFile
 
->>> zf = ZipFile(BytesIO(decrypted_zip_bytes))
->>> zf.infolist() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-[<ZipInfo filename='user.crt' 
-    compress_type=deflate 
-    filemode='?rw-------' 
-    file_size=1996 
-    compress_size=1503>, 
- <ZipInfo filename='certificate_chain.pem' 
-    compress_type=deflate 
-    filemode='?rw-------' 
-    file_size=1995 
-    compress_size=1503>, 
- <ZipInfo filename='ca.crt' 
-    compress_type=deflate 
-    filemode='?rw-------' 
-    file_size=1996 
-    compress_size=1503>]
-
->>> zf.namelist()
-['user.crt', 'certificate_chain.pem', 'ca.crt']
-
-
+>>> zf:ZipFile = ZipFile(BytesIO(decrypted_zip_bytes))
 >>> for file_ in zf.namelist():
 ...     ext= Path(file_).suffix
-...     if ext == config["ext_cert"] :
-...         _=zf.extract(file_, pathconf["certs"])
-...     elif ext == config["ext_public"]:
-...         _=zf.extract(file_, pathconf["public_data"])
-...     elif ext == config["ext_chain"]:
-...         _=zf.extract(file_, pathconf["chains"])
+...     if ext == config.ext_cert :
+...         _=zf.extract(file_, config.certs)
+...     elif ext == config.ext_public:
+...         _=zf.extract(file_, config.public_data)
+...     elif ext == config.ext_chain:
+...         _=zf.extract(file_, config.chains)
 ...     else:
 ...         _=zf.extract(file_)
-
 >>> zf.close()
 
 .. !SECTION - Extraction and installation of the content.
 
+.. !SECTION - End proggramm: prog_receive_certs
+
+.. SECTION - Tests
+
+>>> from platformdirs import user_config_path, user_data_path
+>>> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
+>>> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
+
+>>> (conf_path / ".private"/ "ca.key").is_file()
+True
+
+>>> (public_path / "certs"/ "ca.crt").is_file()
+True
+
+>>> (public_path / "certs"/ "user.crt").is_file()
+True
+
+>>> (public_path / "chains" / "certificate_chain.pem").is_file()
+True
+
+.. !SECTION - Tests
 
 
-.. SECTION - Teardown Test-Environment
+.. SECTION - Teardown
 
->>> env.clean_home()
+>> env.clean_home()
 >>> env.teardown()
 
-.. !SECTION - Teardown Test-Environment
-
+.. !SECTION Teardown

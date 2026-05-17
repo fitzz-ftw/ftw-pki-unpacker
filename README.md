@@ -2,7 +2,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: LGPL v2.1](https://img.shields.io/badge/License-LGPL_v2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
-[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]
+[![Coverage: 93%](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)]
 
 The secure ingestion, validation, and decryption gateway of the **ftw-pki** suite. This repository provides the `ftwpkireceiver` utility.
 

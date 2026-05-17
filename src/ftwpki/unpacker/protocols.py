@@ -1,4 +1,4 @@
-# File: src/ftwpki/receiver/protocols.py
+# File: src/ftwpki/unpacker/protocols.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
@@ -6,17 +6,17 @@
 protocols
 ===============================
 
-Structural interfaces for the certificate receiver package. (ro)
+Structural interfaces for the certificate unpacker package. (ro)
 """
 
 from pathlib import Path
 from typing import Protocol
 
 
-# CLASS - ReceiverCliProtocol
-class ReceiverCliProtocol(Protocol):
+# CLASS - UnpackerCliProtocol
+class UnpackerCliProtocol(Protocol):
     """
-    Structural interface for receiver command-line arguments. (ro)
+    Structural interface for unpacker command-line arguments. (ro)
 
     Defines the required attributes to identify the local private key
     and the incoming encrypted transport package.
@@ -26,9 +26,11 @@ class ReceiverCliProtocol(Protocol):
     """Filename or path to the local private key used for decryption."""
     cert_file: str
     """Path to the encrypted ZIP transport package (.zip.enc)."""
+    # DOC - new
+    configname:str
 
 
-# !CLASS - ReceiverCliProtocol
+# !CLASS - UnpackerCliProtocol
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
