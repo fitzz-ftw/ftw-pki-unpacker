@@ -1,16 +1,16 @@
-# ftw-pki-receiver
+# ftw-pki-unpacker
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: LGPL v2.1](https://img.shields.io/badge/License-LGPL_v2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 [![Coverage: 93%](https://img.shields.io/badge/coverage-94%25-brightgreen.svg)]
 
-The secure ingestion, validation, and decryption gateway of the **ftw-pki** suite. This repository provides the `ftwpkireceiver` utility.
+The secure ingestion, validation, and decryption gateway of the **ftw-pki** suite. This repository provides the `ftwpkiunpacker` utility.
 
-## 🛠 Why do we need a Receiver?
+## 🛠 Why do we need an Unpacker?
 
 In high-security PKI environments, signing entities (especially Root and Intermediate CAs) often operate in restricted or offline environments. They should never be directly exposed to raw, unvalidated input from the network.
 
-The **Receiver** acts as a "buffer, filter, and delivery endpoint":
+The **Unpacker** acts as a "buffer, filter, and delivery endpoint":
 
 1. **Ingestion & Sanitization:** It collects Certificate Signing Requests (CSRs) and pre-validates them against defined security policies before they ever reach the signing tools.
 2. **Security Boundary:** It ensures that only well-formed and authorized requests are passed forward, protecting the sensitive signing infrastructure from malformed data or injection attacks.
@@ -22,14 +22,6 @@ The **Receiver** acts as a "buffer, filter, and delivery endpoint":
 * **Integrity Checks:** Verifies the cryptographic signatures of incoming CSRs to ensure they haven't been tampered with during transit.
 * **Minimalist CLI:** Designed to be as simple as possible to minimize the attack surface, requiring only essential positional arguments.
 
-## 🚀 Quick Start
-
-Since the tool handles its own configuration, you can start processing packages immediately.
-
-```bash
-# Usage: ftwpkireceiver <private_key> <received_package>
-ftwpkireceiver ./path/to/private_key.pem ./path/to/encrypted_package.bin
-```
 
 ## 📖 Documentation
 
