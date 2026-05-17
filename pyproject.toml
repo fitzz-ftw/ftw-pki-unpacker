@@ -35,7 +35,7 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = ["ftw-pki-libs"]
-description = ""
+description = "A secure extraction utility for unpacking encrypted and signed PKI certificate bundles."
 dynamic = ["version"]
 name = "ftw-pki-unpacker"
 readme = "README.md"
@@ -50,7 +50,7 @@ Issues = "https://github.com/fitzz-ftw/ftw-pki-unpacker/issues"
 Changelog = "https://github.com/fitzz-ftw/ftw-pki-unpacker/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ftwpkireceiver = "ftwpki.unpacker.programms:prog_receive_certs"
+ftwpkiunpacker = "ftwpki.unpacker.programms:prog_unpacker_certs"
 
 [project.optional-dependencies]
 doc = [
