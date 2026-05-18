@@ -71,16 +71,29 @@ Enter Password:
 >>> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
 >>> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
 
+>>> (conf_path / ".private"/ "ca.key.pem").is_file()
+False
+
+>>> (public_path / "certs"/ "ca.crt.pem").is_file()
+False
+
+>>> (public_path / "certs"/ "user.crt.pem").is_file()
+False
+
+>>> (public_path / "chains" / "certificate_chain.chain.pem").is_file()
+False
+
+
 >>> (conf_path / ".private"/ "ca.key").is_file()
 True
 
->>> (public_path / "certs"/ "ca.crt").is_file()
+>>> Path("ca.crt").is_file()
 True
 
->>> (public_path / "certs"/ "user.crt").is_file()
+>>> Path("user.crt").is_file()
 True
 
->>> (public_path / "chains" / "certificate_chain.pem").is_file()
+>>> Path("certificate_chain.pem").is_file()
 True
 
 .. !SECTION - Tests

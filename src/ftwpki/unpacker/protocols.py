@@ -26,8 +26,8 @@ class UnpackerCliProtocol(Protocol):
     """Filename or path to the local private key used for decryption."""
     cert_file: str
     """Path to the encrypted ZIP transport package (.zip.enc)."""
-    # DOC - new
     configname:str
+    """The name of the specific configuration section to be loaded."""
 
 
 # !CLASS - UnpackerCliProtocol
