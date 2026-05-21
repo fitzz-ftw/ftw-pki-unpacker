@@ -43,7 +43,12 @@ class UnpackerCliParser(ArgparseFix311):
             "cert_file",
             help="The file path of the encrypted certificate transport package.",
         )
-
+        self.add_argument(
+            "passphrase_file", 
+            nargs="?", 
+            default=None, 
+            help="Optional: The path to the encrypted passphrase file (needed for Intermediates)."
+        )
         self.add_argument(
             "-c","--config-name",
             dest="configname",

@@ -17,12 +17,14 @@ from zipfile import ZipFile
 
 from ftwpki.baselibs.configuration import ReaderPKIConfig
 from ftwpki.baselibs.core import load_private_key_from_pem
+from ftwpki.baselibs.passwd import PasswordManager
 from ftwpki.baselibs.transport import RSAPrivateKey, decrypt_transport_package
 from ftwpki.unpacker.cli_parser import UnpackerCliParser
 from ftwpki.unpacker.protocols import UnpackerCliProtocol
 
 
 def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
+    #DOC - change?
     """
     Execute the main process for receiving and installing certificates.
 
@@ -52,13 +54,28 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
         args:UnpackerCliProtocol = parser.parse_args(argv)
         config.read_config(args.configname)
         # !SECTION - Configuration
-        # SECTION - Loading Certificate package and private key
-        private_key:RSAPrivateKey = load_private_key_from_pem(
-                (config.private_keys / args.private_key).read_bytes(),
-                getpass.getpass("Enter Password: ")
+        if args.passphrase_file is not None:
+            # SECTION - Passphrasefilehandling
+            pwd_man = PasswordManager(private_dir=str(config.private_keys))
+            pass_phrase = pwd_man.decrypt_password_file(
+                args.passphrase_file, getpass.getpass("Enter Password: ")
             )
-
-        #!SECTION - Loading Certificate package and private key
+          # SECTION - Loading Certificate package and private key
+            private_key: RSAPrivateKey = load_private_key_from_pem(
+                (config.private_keys / args.private_key).read_bytes(),
+                pass_phrase
+            )
+            # !SECTION - Loading Certificate package and private key
+            # !SECTION - Passphrasefilehandling
+        else:
+            # SECTION - Standardhandling
+            # SECTION - Loading Certificate package and private key
+            private_key:RSAPrivateKey = load_private_key_from_pem(
+                    (config.private_keys / args.private_key).read_bytes(),
+                    getpass.getpass("Enter Password: ")
+                )
+            # !SECTION - Loading Certificate package and private key
+            # !SECTION - Standardhandling
         # SECTION - Decrypting the file
         decrypted_zip_bytes:bytes = decrypt_transport_package(
             Path(args.cert_file).read_bytes(),
@@ -68,7 +85,7 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
         # SECTION - Extraction and installation of the content.
         with ZipFile(BytesIO(decrypted_zip_bytes)) as zf:
             for file_ in zf.namelist():
-                ext= Path(file_).suffix
+                ext = "".join(Path(file_).suffixes)
                 if ext == config.ext_cert :
                     _=zf.extract(file_, config.certs)
                 elif ext == config.ext_public:
@@ -100,6 +117,7 @@ if __name__ == "__main__":  # pragma: no cover
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
         "get_started_programms.rst",
+        "get_started_programms_intermed.rst",
         "get_started_run_programms.rst",
         # "get_started_programms_old.rst",
         

@@ -1,0 +1,21 @@
+[fallback]
+# Identity (encrypted & hidden)
+private_keys = "#config#.private"
+passphrases  = "#config#.private"
+
+
+# Infrastructure resources
+policies     = "#config#policies"
+
+
+# Public data
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#chains"
+
+# File extensions for public/semi-private data only
+ext_cert     = ".crt.pem"
+ext_public   = ".pub.pem"
+ext_chain    = ".chain.pem"
+ext_policy   = ".policy"
+ext_signedcert= ".zip.enc"
