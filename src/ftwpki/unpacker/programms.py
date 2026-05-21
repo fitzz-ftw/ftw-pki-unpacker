@@ -118,6 +118,7 @@ if __name__ == "__main__":  # pragma: no cover
     test_files = [
         "get_started_programms.rst",
         "get_started_programms_intermed.rst",
+        "get_started_run_programms_intermed.rst",
         "get_started_run_programms.rst",
         # "get_started_programms_old.rst",
         

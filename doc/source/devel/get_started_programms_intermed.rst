@@ -207,7 +207,7 @@ False
 
 .. SECTION - Teardown
 
->> env.clean_home()
+>>> env.clean_home()
 >>> env.teardown()
 
 .. !SECTION Teardown
