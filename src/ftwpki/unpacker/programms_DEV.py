@@ -11,14 +11,12 @@ Main entry points for the certificate unpacker process. (rw)
 """
 
 import getpass
-from io import BytesIO
 from pathlib import Path
-from zipfile import ZipFile
 
-from ftwpki.baselibs.configuration import ReaderPKIConfig
+from ftwpki.baselibs.configuration import PKIPackage, RootSignerPKIConfig_DEV
 from ftwpki.baselibs.core import load_private_key_from_pem
 from ftwpki.baselibs.passwd import PasswordManager
-from ftwpki.baselibs.transport import RSAPrivateKey, decrypt_transport_package
+from ftwpki.baselibs.transport import RSAPrivateKey
 from ftwpki.unpacker.cli_parser import UnpackerCliParser
 from ftwpki.unpacker.protocols import UnpackerCliProtocol
 
@@ -46,56 +44,53 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
     """
     try:
         # SECTION - Configuration
-        config:ReaderPKIConfig = ReaderPKIConfig()
-        config.read_main_config()
-        from_file:dict[str,str]={"configname": config.default_config,}
         parser:UnpackerCliParser  = UnpackerCliParser()
-        parser.set_defaults(**from_file)
         args:UnpackerCliProtocol = parser.parse_args(argv)
-        config.read_config(args.configname)
+        config:RootSignerPKIConfig_DEV = RootSignerPKIConfig_DEV(args.cert_file)        
+        config.set_config(args.configname)
+        config.handle_pki_file()
         # !SECTION - Configuration
-        private_key_path = config.private_keys if config.private_keys is not None else Path()
-        if args.passphrase_file is not None:
-            # SECTION - Passphrasefilehandling
-            pwd_man = PasswordManager(private_dir=str(config.private_keys))
+        if args.configname == "intermediate":
+        # SECTION - Passphrasefilehandling
+            pwd_man = PasswordManager(private_dir=str(config.passphrases)) 
             pass_phrase = pwd_man.decrypt_password_file(
-                args.passphrase_file, getpass.getpass("Enter Password: ")
+                args.private_key,
+                getpass.getpass("Enter Password: ")
             )
-          # SECTION - Loading Certificate package and private key
-            private_key: RSAPrivateKey = load_private_key_from_pem(
-                private_key_path.joinpath(args.private_key).read_bytes(),
-                pass_phrase
-            )
-            # !SECTION - Loading Certificate package and private key
-            # !SECTION - Passphrasefilehandling
+            del pwd_man
+        #!SECTION - Passphrasefilehandling
         else:
-            # SECTION - Standardhandling
-            # SECTION - Loading Certificate package and private key
-            private_key: RSAPrivateKey = load_private_key_from_pem(
-                private_key_path.joinpath(args.private_key).read_bytes(),
-                getpass.getpass("Enter Password: "),
-            )
-            # !SECTION - Loading Certificate package and private key
-            # !SECTION - Standardhandling
-        # SECTION - Decrypting the file
-        decrypted_zip_bytes:bytes = decrypt_transport_package(
-            Path(args.cert_file).read_bytes(),
-            private_key,
-        )
-        # !SECTION - Decrypting the file
-        # SECTION - Extraction and installation of the content.
-        with ZipFile(BytesIO(decrypted_zip_bytes)) as zf:
-            for file_ in zf.namelist():
-                ext = "".join(Path(file_).suffixes)
-                if ext == config.ext_cert :
-                    _=zf.extract(file_, config.certs)
-                elif ext == config.ext_public:
-                    _=zf.extract(file_, config.public_data)
-                elif ext == config.ext_chain:
-                    _=zf.extract(file_, config.chains)
-                else:
-                    _=zf.extract(file_)
-        # !SECTION - Extraction and installation of the content.
+        # SECTION - Standardhandling
+            pass_phrase = getpass.getpass("Enter Password: ")
+        # !SECTION - Standardhandling
+        # SECTION - Loading private key
+        private_key:RSAPrivateKey = load_private_key_from_pem(
+                config.private_key(), 
+                pass_phrase
+             )
+        del pass_phrase
+        # !SECTION - Loading private key
+        # SECTION - Decrypting and Loading the file 
+        pack = PKIPackage()
+        pack.private_key = private_key
+        del private_key
+        pack.load(args.cert_file)
+        del pack.private_key
+        # !SECTION - Decrypting and Loading the file 
+        # SECTION - Extraction and transfer of the content.
+        conf_pki = config.pki
+        conf_pki.fullchain.extend(pack.fullchain)
+        conf_pki.ca_cert = pack.ca_cert
+        conf_pki.caroot_cert = pack.caroot_cert
+        conf_pki.own_cert = pack.own_cert
+        conf_pki.intermediatechain.extend(pack.intermediatechain)
+        conf_pki.additional_files.update(pack.additional_files)
+        #  !SECTION - Extraction and transfer of the content.
+        # SECTION - Cleaning up
+        conf_pki = None
+        del conf_pki
+        Path(args.cert_file).unlink()
+        # !SECTION - Cleaning up
         return 0
     except KeyboardInterrupt:
         return 1
@@ -119,6 +114,7 @@ if __name__ == "__main__":  # pragma: no cover
     test_files = [
         # "get_started_programms.rst",
         "get_started_programms_intermed_DEV.rst",
+        # "get_started_run_programms_intermed_DEV.rst",
         # "get_started_run_programms_intermed.rst",
         # "get_started_run_programms.rst",
         # "get_started_programms_old.rst",

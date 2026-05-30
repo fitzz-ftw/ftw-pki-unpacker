@@ -1,14 +1,13 @@
-The ftwpki-unpacker program for intermediate
-=============================================
+The ftwpki-unpacker program
+=============================
 
 .. SECTION - Setup Test-Environment
 
->>> test_transport_package = "Muster-Verband-eV_Hamburg.zip.enc"
+>>> test_transport_package = "testtransport.zip.enc"
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 
 Schritt 1: Initialisieren der frischen Sandbox via ftw-devtools-0.3.0
-
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"),
 ...     appname="ftwpki", appauthor="FitzzTeXnikWelt")
 >>> env.setup()
@@ -17,16 +16,13 @@ Schritt 1: Initialisieren der frischen Sandbox via ftw-devtools-0.3.0
 
 Schritt 2: Wir instanziieren die reale IntermedPKIConfig. Sie schreibt die 
 Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
-
->>> from ftwpki.baselibs.configuration import IntermedPKIConfig
->>> cfg = IntermedPKIConfig()
+>>> from ftwpki.baselibs.configuration import UserPKIConfig
+>>> cfg = UserPKIConfig()
 >>> cfg.set_config()
 
->>> _ = env.copy2config("test_files/intermed1.key.pem",".private/intermed1.key.pem")
->>> _ = env.copy2config("test_files/inter1secret",".private/inter1secret")
+>>> _ = env.copy2config("tests_pki_root/ca.key",".private/ca.key")
 
-
->>> _ =env.copy2cwd("test_files/Muster-Verband-eV_Hamburg.zip.enc", "Muster-Verband-eV_Hamburg.zip.enc")
+>>> _ =env.copy2cwd("testtransport.zip.enc")
 
 .. !SECTION - Setup Test-Environment
 
@@ -37,7 +33,7 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 ...     def __init__(self):
 ...         self.generate = self._generate()
 ...     def _generate(self):
-...         yield "secret"
+...         yield "1234"
 ...     def __call__(self, prompt):
 ...         print(prompt, flush=True)
 ...         return next(self.generate)
@@ -53,8 +49,9 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 
 >>> from ftwpki.unpacker import programms
 
+>>> 
 
->>> sys_argv = ["intermed1.key.pem", test_transport_package, "inter1secret"]
+>>> sys_argv = ["ca.key", test_transport_package]
 
 .. !SECTION - Perpare Test 
 
@@ -69,7 +66,7 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> config.read_main_config()
 
 >>> config.default_config
-'intermed.toml'
+'user.toml'
 
 >>> from_file:dict[str,str]={"configname": config.default_config,}
 
@@ -85,33 +82,14 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> args:UnpackerCliProtocol = parser.parse_args(sys_argv)
 
 >>> args
-Namespace(private_key='intermed1.key.pem', cert_file='Muster-Verband-eV_Hamburg.zip.enc', passphrase_file='inter1secret', configname='intermed.toml')
+Namespace(private_key='ca.key', cert_file='testtransport.zip.enc', passphrase_file=None, configname='user.toml')
 
 >>> config.read_config(args.configname)
 
+
 .. !SECTION - Configuration
 
->>> ppf = args.passphrase_file is not None
-
-.. SECTION - Passphrasefilehandling
-
->>> from ftwpki.baselibs.passwd import PasswordManager
->>> pwd_man = PasswordManager(private_dir=str(config.private_keys)) if ppf else None
-
->>> pwd_man #doctest: +ELLIPSIS
-PasswordManager(private_dir='...ftwpki/.private')
-
->>> pass_phrase = pwd_man.decrypt_password_file(args.passphrase_file, getpass.getpass("Enter Password: "))
-Enter Password: 
-
-
->>> pass_phrase == "lökjdfaijndbjefrzuiexhLOHioIHUOIH987621929OPLNl*'khjGZO}"
-True
-
->>> pass_bytes = pass_phrase.encode("utf-8")
-
-
-
+.. SECTION - Standardhandling
 .. SECTION - Loading Certificate package and private key
 
 >>> from ftwpki.baselibs.core import load_private_key_from_pem
@@ -120,20 +98,16 @@ True
 
 
 Der Aufruf nutzt durch den frühen Import-Patch direkt den globalen Stub:
-
 >>> private_key:RSAPrivateKey = load_private_key_from_pem(
 ...     (config.private_keys / args.private_key).read_bytes(), 
-...     pass_phrase
-... ) 
-
+...     getpass.getpass("Enter Password: ")
+... )
+Enter Password: 
 
 .. !SECTION - Loading Certificate package and private key
-
-.. !SECTION - Passphrasefilehandling
-
+.. !SECTION - Standardhandling
 
 .. SECTION - Decrypting the file 
-
 
 >>> from ftwpki.baselibs.transport import decrypt_transport_package
 
@@ -154,12 +128,8 @@ True
 >>> from zipfile import ZipFile
 
 >>> zf:ZipFile = ZipFile(BytesIO(decrypted_zip_bytes))
-
->>> print(zf.namelist())
-['Muster-Verband-eV_Hamburg.crt.pem', 'all.chain.pem', 'ca.crt.pem']
-
 >>> for file_ in zf.namelist():
-...     ext= "".join(Path(file_).suffixes)
+...     ext= Path(file_).suffix
 ...     if ext == config.ext_cert :
 ...         _=zf.extract(file_, config.certs)
 ...     elif ext == config.ext_public:
@@ -180,35 +150,37 @@ True
 >>> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
 >>> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
 
->>> (conf_path / ".private"/ "intermed1.key.pem").is_file()
-True
+>>> (conf_path / ".private"/ "ca.key.pem").is_file()
+False
 
 >>> (public_path / "certs"/ "ca.crt.pem").is_file()
+False
+
+>>> (public_path / "certs"/ "user.crt.pem").is_file()
+False
+
+>>> (public_path / "chains" / "certificate_chain.chain.pem").is_file()
+False
+
+
+>>> (conf_path / ".private"/ "ca.key").is_file()
 True
-
->>> (public_path / "certs"/ "Muster-Verband-eV_Hamburg.crt.pem").is_file()
-True
-
->>> (public_path / "chains" / "all.chain.pem").is_file()
-True
-
-
 
 >>> Path("ca.crt").is_file()
-False
+True
 
 >>> Path("user.crt").is_file()
-False
+True
 
 >>> Path("certificate_chain.pem").is_file()
-False
+True
 
 .. !SECTION - Tests
 
 
 .. SECTION - Teardown
 
->>> env.clean_home()
+>> env.clean_home()
 >>> env.teardown()
 
 .. !SECTION Teardown
