@@ -3,11 +3,12 @@ The ftwpki-unpacker program for intermediate
 
 .. SECTION - Setup Test-Environment
 
->>> test_transport_package = "Muster-Verband-eV_Hamburg.zip.enc"
+>>> test_transport_package = ""
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 
 Schritt 1: Initialisieren der frischen Sandbox via ftw-devtools-0.3.0
+
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"),
 ...     appname="ftwpki", appauthor="FitzzTeXnikWelt")
 >>> env.setup()
@@ -16,15 +17,23 @@ Schritt 1: Initialisieren der frischen Sandbox via ftw-devtools-0.3.0
 
 Schritt 2: Wir instanziieren die reale IntermedPKIConfig. Sie schreibt die 
 Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
+
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
 >>> cfg = IntermedPKIConfig()
 >>> cfg.set_config()
 
->>> _ = env.copy2config("test_files/intermed1.key.pem",".private/intermed1.key.pem")
->>> _ = env.copy2config("test_files/inter1secret",".private/inter1secret")
+>>> del cfg
 
 
->>> _ =env.copy2cwd("test_files/Muster-Verband-eV_Hamburg.zip.enc", "Muster-Verband-eV_Hamburg.zip.enc")
+>>> test_data_dir = "test-ok-intermediate"
+>>> passphraese_file_name = "inter1secret"
+>>> pki_conf_file = "M-V-HH-CA.pki"
+>>> pki_transport = "M-V-HH-CA.spki"
+
+>>> _ = env.copy2config(f"{test_data_dir}/{passphraese_file_name}",
+...     f".private/{passphraese_file_name}")
+>>> _ = env.copy2config(f"{test_data_dir}/{pki_conf_file}",f".private/{pki_conf_file}")
+>>> _ =env.copy2cwd(f"{test_data_dir}/{pki_transport}", f"{pki_transport}")
 
 .. !SECTION - Setup Test-Environment
 
@@ -40,6 +49,15 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 ...         print(prompt, flush=True)
 ...         return next(self.generate)
 
+>>> def stub_keyboard_interrupt(prompt:str)->str:
+...     print(prompt)
+...     raise KeyboardInterrupt
+
+>>> def stub_exception(prompt:str):
+...     raise Exception("Test exception!")
+
+
+
 >>> stubpwinput = StubPassword()
 
 Schritt 3: Globales getpass patchen, BEVOR das Programmmodul geladen wird!
@@ -49,9 +67,11 @@ Schritt 3: Globales getpass patchen, BEVOR das Programmmodul geladen wird!
 
 Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Patch:
 
+>>> sys_argv = ["-c","intermediate", "inter1secret", pki_transport]
 
+.. !SECTION - Perpare Test 
 
->>> sys_argv = ["intermed1.key.pem", test_transport_package, "inter1secret"]
+.. ANCHOR - Start programm: prog_receive_certs
 
 >>> from ftwpki.unpacker.programms import prog_unpacker_certs
 
@@ -59,8 +79,15 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 Enter Password: 
 0
 
->> prog_receive_certs(sys_argv)
+>>> getpass.getpass = stub_keyboard_interrupt
+>>> prog_unpacker_certs(sys_argv)
+Enter Password: 
+1
 
+>>> getpass.getpass = stub_exception
+>>> prog_unpacker_certs(sys_argv)
+Test exception!
+1
 
 .. SECTION - Teardown
 
@@ -68,4 +95,3 @@ Enter Password:
 >>> env.teardown()
 
 .. !SECTION Teardown
-

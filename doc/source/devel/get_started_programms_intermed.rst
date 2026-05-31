@@ -3,7 +3,7 @@ The ftwpki-unpacker program for intermediate
 
 .. SECTION - Setup Test-Environment
 
->>> test_transport_package = "Muster-Verband-eV_Hamburg.zip.enc"
+>>> test_transport_package = ""
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 
@@ -22,11 +22,18 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 >>> cfg = IntermedPKIConfig()
 >>> cfg.set_config()
 
->>> _ = env.copy2config("test_files/intermed1.key.pem",".private/intermed1.key.pem")
->>> _ = env.copy2config("test_files/inter1secret",".private/inter1secret")
+>>> del cfg
 
 
->>> _ =env.copy2cwd("test_files/Muster-Verband-eV_Hamburg.zip.enc", "Muster-Verband-eV_Hamburg.zip.enc")
+>>> test_data_dir = "test-ok-intermediate"
+>>> passphraese_file_name = "inter1secret"
+>>> pki_conf_file = "M-V-HH-CA.pki"
+>>> pki_transport = "M-V-HH-CA.spki"
+
+>>> _ = env.copy2config(f"{test_data_dir}/{passphraese_file_name}",
+...     f".private/{passphraese_file_name}")
+>>> _ = env.copy2config(f"{test_data_dir}/{pki_conf_file}",f".private/{pki_conf_file}")
+>>> _ =env.copy2cwd(f"{test_data_dir}/{pki_transport}", f"{pki_transport}")
 
 .. !SECTION - Setup Test-Environment
 
@@ -54,7 +61,7 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> from ftwpki.unpacker import programms
 
 
->>> sys_argv = ["intermed1.key.pem", test_transport_package, "inter1secret"]
+>>> sys_argv = ["-c","intermediate", "inter1secret", pki_transport]
 
 .. !SECTION - Perpare Test 
 
@@ -62,21 +69,9 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 
 .. SECTION - Configuration
 
->>> from ftwpki.baselibs.configuration import ReaderPKIConfig
-
->>> config:ReaderPKIConfig = ReaderPKIConfig()
-
->>> config.read_main_config()
-
->>> config.default_config
-'intermed.toml'
-
->>> from_file:dict[str,str]={"configname": config.default_config,}
-
 >>> from ftwpki.unpacker.cli_parser import UnpackerCliParser
 
 >>> parser:UnpackerCliParser  = UnpackerCliParser()
->>> parser.set_defaults(**from_file)
 
 >> parser.print_help()
 
@@ -84,123 +79,147 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 
 >>> args:UnpackerCliProtocol = parser.parse_args(sys_argv)
 
->>> args
-Namespace(private_key='intermed1.key.pem', cert_file='Muster-Verband-eV_Hamburg.zip.enc', passphrase_file='inter1secret', configname='intermed.toml')
+>>> args #doctest: +NORMALIZE_WHITESPACE
+Namespace(private_key='inter1secret', 
+    cert_file='M-V-HH-CA.spki', 
+    passphrase_file=None, 
+    configname='intermediate')
 
->>> config.read_config(args.configname)
+
+
+>>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
+
+>>> config:RootSignerPKIConfig = RootSignerPKIConfig(args.cert_file)
+
+>>> config.set_config(args.configname)
+
+>>> config.current_configfile_entries #doctest: +NORMALIZE_WHITESPACE
+{'private_keys': '#zip#', 
+ 'zip': '#config#.private', 
+ 'certs': '#zip#', 
+ 'chains': '#zip#', 
+ 'passphrases': '#config#.private', 
+ 'policies': '#zip#', 
+ 'config_path': '#config#', 
+ 'data_path': '#data#'}
+
+>>> config.handle_pki_file()
 
 .. !SECTION - Configuration
 
->>> ppf = args.passphrase_file is not None
+>>> ppf = args.configname == "intermediate" 
+
+>>> if ppf:
+...     print("This part until '!SECTION - Passphrasefilehandling'")
+This part until '!SECTION - Passphrasefilehandling'
 
 .. SECTION - Passphrasefilehandling
 
 >>> from ftwpki.baselibs.passwd import PasswordManager
->>> pwd_man = PasswordManager(private_dir=str(config.private_keys)) if ppf else None
+>>> pwd_man = PasswordManager(private_dir=str(config.passphrases)) 
 
 >>> pwd_man #doctest: +ELLIPSIS
 PasswordManager(private_dir='...ftwpki/.private')
 
->>> pass_phrase = pwd_man.decrypt_password_file(args.passphrase_file, getpass.getpass("Enter Password: "))
-Enter Password: 
 
+>>> pass_phrase = pwd_man.decrypt_password_file(args.private_key, getpass.getpass("Enter Password: "))
+Enter Password: 
 
 >>> pass_phrase == "lökjdfaijndbjefrzuiexhLOHioIHUOIH987621929OPLNl*'khjGZO}"
 True
+>>> del pwd_man
 
->>> pass_bytes = pass_phrase.encode("utf-8")
+.. !SECTION - Passphrasefilehandling
+else:
 
+>>> pass_phrase = getpass.getpass("Enter Password: ") #doctest: +SKIP
+Enter Password: 
 
-
-.. SECTION - Loading Certificate package and private key
+.. SECTION - Loading private key
 
 >>> from ftwpki.baselibs.core import load_private_key_from_pem
 >>> from ftwpki.baselibs.transport import RSAPrivateKey, decrypt_transport_package
 
-
-
 Der Aufruf nutzt durch den frühen Import-Patch direkt den globalen Stub:
 
+
+
+
 >>> private_key:RSAPrivateKey = load_private_key_from_pem(
-...     (config.private_keys / args.private_key).read_bytes(), 
+...     config.private_key(), 
 ...     pass_phrase
 ... ) 
 
+>>> del pass_phrase
 
-.. !SECTION - Loading Certificate package and private key
-
-.. !SECTION - Passphrasefilehandling
-
-
-.. SECTION - Decrypting the file 
+.. !SECTION - Loading private key
 
 
->>> from ftwpki.baselibs.transport import decrypt_transport_package
 
->>> decrypted_zip_bytes:bytes = decrypt_transport_package(
-...     Path(args.cert_file).read_bytes(),
-...     private_key,
-... )
+.. SECTION - Decrypting and Loading the file 
 
->>> decrypted_zip_bytes.startswith(b'PK')
-True
+>>> from ftwpki.baselibs.package import PKIPackage
+>>> pack = PKIPackage()
+>>> pack.private_key = private_key
+>>> del private_key
+>>> pack.load(args.cert_file)
+>>> del pack.private_key
 
-.. !SECTION - Decrypting the file 
+.. !SECTION - Decrypting and Loading the file 
 
-.. SECTION - Extraction and installation of the content.
+.. SECTION - Extraction and transfer of the content.
 
->>> from io import BytesIO
+>>> conf_pki = config.pki
 
->>> from zipfile import ZipFile
+>>> conf_pki.fullchain.extend(pack.fullchain)
+>>> conf_pki.ca_cert = pack.ca_cert
 
->>> zf:ZipFile = ZipFile(BytesIO(decrypted_zip_bytes))
+>>> conf_pki.caroot_cert = pack.caroot_cert
+>>> conf_pki.own_cert = pack.own_cert
+>>> conf_pki.intermediatechain.extend(pack.intermediatechain)
+>>> conf_pki.additional_files.update(pack.additional_files)
+>>> _ = conf_pki.save()
 
->>> print(zf.namelist())
-['Muster-Verband-eV_Hamburg.crt.pem', 'all.chain.pem', 'ca.crt.pem']
+.. !SECTION - Extraction and transfer of the content.
+.. SECTION - Cleaning up
 
->>> for file_ in zf.namelist():
-...     ext= "".join(Path(file_).suffixes)
-...     if ext == config.ext_cert :
-...         _=zf.extract(file_, config.certs)
-...     elif ext == config.ext_public:
-...         _=zf.extract(file_, config.public_data)
-...     elif ext == config.ext_chain:
-...         _=zf.extract(file_, config.chains)
-...     else:
-...         _=zf.extract(file_)
->>> zf.close()
+>>> conf_pki = None
+>>> del conf_pki
 
-.. !SECTION - Extraction and installation of the content.
+>>> Path(args.cert_file).unlink()
+
+.. !SECTION - Cleaning up
+
 
 .. !SECTION - End proggramm: prog_receive_certs
 
 .. SECTION - Tests
 
->>> from platformdirs import user_config_path, user_data_path
->>> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
->>> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
+>> from platformdirs import user_config_path, user_data_path
+>> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
+>> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
 
->>> (conf_path / ".private"/ "intermed1.key.pem").is_file()
+>> (conf_path / ".private"/ "intermed1.key.pem").is_file()
 True
 
->>> (public_path / "certs"/ "ca.crt.pem").is_file()
+>> (public_path / "certs"/ "ca.crt.pem").is_file()
 True
 
->>> (public_path / "certs"/ "Muster-Verband-eV_Hamburg.crt.pem").is_file()
+>> (public_path / "certs"/ "Muster-Verband-eV_Hamburg.crt.pem").is_file()
 True
 
->>> (public_path / "chains" / "all.chain.pem").is_file()
+>> (public_path / "chains" / "all.chain.pem").is_file()
 True
 
 
 
->>> Path("ca.crt").is_file()
+>> Path("ca.crt").is_file()
 False
 
->>> Path("user.crt").is_file()
+>> Path("user.crt").is_file()
 False
 
->>> Path("certificate_chain.pem").is_file()
+>> Path("certificate_chain.pem").is_file()
 False
 
 .. !SECTION - Tests
@@ -208,7 +227,7 @@ False
 
 .. SECTION - Teardown
 
->>> env.clean_home()
+>> env.clean_home()
 >>> env.teardown()
 
 .. !SECTION Teardown
