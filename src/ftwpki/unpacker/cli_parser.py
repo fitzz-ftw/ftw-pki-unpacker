@@ -14,12 +14,20 @@ from argparse import Namespace
 from pathlib import Path
 from typing import cast
 
-from ftwpki.baselibs.cli_parser import ArgparseFix311
+from ftwpki.baselibs.cli_parser import ArgparseFix311, AutoHelpParserMixin, load_help_entries
 from ftwpki.unpacker.protocols import UnpackerCliProtocol
+
+HELP_FILE = Path(__file__).parent.joinpath("cli_parser.help")
+
+_HELP = {}
+
+load_help_entries(_HELP, HELP_FILE)
+
+LANG = "en"
 
 
 # CLASS - UnpackerCliParser
-class UnpackerCliParser(ArgparseFix311):
+class UnpackerCliParser(AutoHelpParserMixin, ArgparseFix311):
     """
     Parser for certificate reception arguments. (rw)
 
@@ -27,9 +35,12 @@ class UnpackerCliParser(ArgparseFix311):
     to the encrypted transport package.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._setup_parser()
+    def __init__(self, *args, run_setup: bool = True, exit_on_error: bool = False, **kwargs):
+        self._is_preparser = not kwargs.get("add_help", True)
+        kwargs["exit_on_error"] = exit_on_error
+        super().__init__(*args, help_id="unpacker", help_entries=_HELP, **kwargs)
+        if run_setup:
+            self._setup_parser()
 
     def _setup_parser(self) -> None:
         """
@@ -37,23 +48,18 @@ class UnpackerCliParser(ArgparseFix311):
         """
         self.add_argument(
             "private_key",
-            help="The filename of the local private key used for decryption.",
+            nargs = "?" if self._is_preparser else None ,
+            help=self._help("private_key"),
         )
         self.add_argument(
             "cert_file",
-            help="The file path of the encrypted certificate transport package.",
+            nargs="?" if self._is_preparser else None,
+            help=self._help("cert_file"),
         )
         self.add_argument(
-            "passphrase_file", 
-            nargs="?", 
-            default=None, 
-            help="Optional: The path to the encrypted passphrase file (needed for Intermediates)."
+            "passphrase_file", nargs="?", default=None, help=self._help("passphrase_file"),
         )
-        self.add_argument(
-            "-c","--config-name",
-            dest="configname",
-            help="Name of the configuration file. (Default: %(default)s)"
-        )
+        self.add_argument("-c", "--config-name", dest="configname", help=self._help("configname"))
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
@@ -88,24 +94,38 @@ if __name__ == "__main__":  # pragma: no cover
     option_flags = FAIL_FAST
     test_sum = 0
     test_failed = 0
+    passed_files = 0
 
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
-    test_file = testfiles_dir / "get_started_cli_parser.rst"
-
-    if test_file.exists():
-        print(f"--- Running Doctest for {test_file.name} ---")
-        doctestresult = testfile(
-            str(test_file),
-            module_relative=False,
-            verbose=be_verbose,
-            optionflags=option_flags,
-        )
-        test_failed += doctestresult.failed
-        test_sum += doctestresult.attempted
-        if test_failed == 0:
-            print(f"\nDocTests passed without errors, {test_sum} tests.")
+    test_files = [
+        "test_new_parser.rst",
+        # "get_started_cli_parser.rst",
+    ]
+    for file in test_files:
+        test_file = testfiles_dir / file
+        if test_file.exists():
+            print(f"--- Running Doctest for {test_file.name} ---")
+            doctestresult = testfile(
+                str(test_file),
+                module_relative=False,
+                verbose=be_verbose,
+                optionflags=option_flags,
+            )
+            test_failed += doctestresult.failed
+            test_sum += doctestresult.attempted
+            if doctestresult.failed > 0 and option_flags & FAIL_FAST:
+                print(f"Doctest result for {test_file.name}: {doctestresult}")
+                print(
+                    f"\nKeep going! You already passed {passed_files} files "
+                    f"with {test_sum} tests before this hit."
+                )
+                break  # Stop on first failure if FAIL_FAST is set
+            passed_files += 1
         else:
-            print(f"\nDocTests failed: {test_failed} tests.")
+            print(f"⚠️ Warning: Test file {test_file.name} not found.")
+    if test_failed == 0:
+        print(f"\nDocTests passed without errors, {test_sum} tests.")
     else:
-        print(f"⚠️ Warning: Test file {test_file.name} not found.")
+        if not option_flags & FAIL_FAST:
+            print(f"\nDocTests failed: {test_failed} tests out of {test_sum}.")

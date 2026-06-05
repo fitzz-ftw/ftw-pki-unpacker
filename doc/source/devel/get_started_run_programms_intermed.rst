@@ -67,7 +67,7 @@ Schritt 3: Globales getpass patchen, BEVOR das Programmmodul geladen wird!
 
 Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Patch:
 
->>> sys_argv = ["-c","intermediate", "inter1secret", pki_transport]
+>>> sys_argv = ["-c","intermediate", "test", pki_transport, "inter1secret"]
 
 .. !SECTION - Perpare Test 
 

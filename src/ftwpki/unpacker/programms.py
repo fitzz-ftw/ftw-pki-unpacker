@@ -11,6 +11,7 @@ Main entry points for the certificate unpacker process. (rw)
 """
 
 import getpass
+import traceback
 from pathlib import Path
 
 from ftwpki.baselibs.configuration import PKIPackage, RootSignerPKIConfig
@@ -46,25 +47,33 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
         # SECTION - Configuration
         parser:UnpackerCliParser  = UnpackerCliParser()
         args:UnpackerCliProtocol = parser.parse_args(argv)
-        config:RootSignerPKIConfig = RootSignerPKIConfig(args.cert_file)        
+        config:RootSignerPKIConfig = RootSignerPKIConfig(args.cert_file)  
         config.set_config(args.configname)
         config.handle_pki_file()
         # !SECTION - Configuration
-        # SECTION - Standard password handling
-        pass_phrase = getpass.getpass("Enter Password: ")
-        # !SECTION - Standard password handling
-        if args.configname == "intermediate":
+        if args.configname == "intermediate" and args.passphrase_file:
         # SECTION - Passphrasefilehandling
+            pass_phrase = getpass.getpass("Enter Password: ")
             pwd_man = PasswordManager(private_dir=str(config.passphrases)) 
-            pass_phrase = pwd_man.decrypt_password_file(
-                args.private_key,
+            pass_phrase:str|None = pwd_man.decrypt_password_file(
+                config.passphrases / args.passphrase_file,
                 pass_phrase
             )
+            private_key_name = "CA.key.pem"
             del pwd_man
         #!SECTION - Passphrasefilehandling
+        else:
+            # SECTION - Standard password handling
+            private_key_name = args.private_key
+            if b"ENCRYPTED PRIVATE" in config.private_key(private_key_name):
+                pass_phrase = getpass.getpass("Enter Password: ")
+            else:
+                pass_phrase = None
+            # !SECTION - Standard password handling
+
         # SECTION - Loading private key
         private_key:RSAPrivateKey = load_private_key_from_pem(
-                config.private_key(), 
+                config.private_key(private_key_name), 
                 pass_phrase
              )
         del pass_phrase
@@ -84,6 +93,7 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
         conf_pki.own_cert = pack.own_cert
         conf_pki.intermediatechain.extend(pack.intermediatechain)
         conf_pki.additional_files.update(pack.additional_files)
+        conf_pki.save()
         #  !SECTION - Extraction and transfer of the content.
         # SECTION - Cleaning up
         conf_pki = None
@@ -94,6 +104,7 @@ def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
     except KeyboardInterrupt:
         return 1
     except Exception as e:
+        traceback.print_exc()
         print(e)
         return 1
 
@@ -111,8 +122,9 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        "get_started_programms_intermed.rst",
-        "get_started_run_programms_intermed.rst",
+        "get_started_programms_server.rst",
+        # "get_started_programms_intermed.rst",
+        # "get_started_run_programms_intermed.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file

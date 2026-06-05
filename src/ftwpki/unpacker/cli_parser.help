@@ -1,0 +1,9 @@
+[unpacker]
+[unpacker.private_key]
+en = "The filename of the local private key used for decryption."
+[unpacker.cert_file]
+en = "The file path of the encrypted certificate transport package."
+[unpacker.passphrase_file]
+en = "Optional: The path to the encrypted passphrase file (needed for Intermediates)."
+[unpacker.configname]
+en = "Name of the configuration file."
