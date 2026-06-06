@@ -12,3 +12,8 @@ UnpackerCliParser(prog='...',
     formatter_class=<class 'argparse.HelpFormatter'>, 
     conflict_handler='error', 
     add_help=True)
+
+
+>>> from ftwpki.unpacker.cli_parser import UnpackerCliParser
+
+>>> cli_p = UnpackerCliParser(run_setup=False)

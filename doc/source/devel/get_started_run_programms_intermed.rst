@@ -48,6 +48,8 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 ...     def __call__(self, prompt):
 ...         print(prompt, flush=True)
 ...         return next(self.generate)
+...     def reset(self):
+...         self.generate = self._generate()
 
 >>> def stub_keyboard_interrupt(prompt:str)->str:
 ...     print(prompt)
@@ -88,6 +90,65 @@ Enter Password:
 >>> prog_unpacker_certs(sys_argv)
 Test exception!
 1
+
+Server Test
+-------------
+
+.. SECTION - Test Server
+
+>>> test_data_dir = "test-server-data"
+>>> private_key_file_name = "member-web.key.pem"
+>>> pki_conf_file = "M-V-HH-Members.pki"
+>>> pki_transport = "M-V-HH-Members.spki"
+
+>>> _ = env.copy2config(f"{test_data_dir}/{private_key_file_name}",
+...     f".private/{private_key_file_name}")
+>>> _ = env.copy2data(f"{test_data_dir}/{pki_conf_file}",f"{pki_conf_file}")
+>>> _ =env.copy2cwd(f"{test_data_dir}/{pki_transport}", f"{pki_transport}")
+
+>>> sys_argv = ["-c","server", "member-web.key.pem", pki_transport]
+
+>>> prog_unpacker_certs(sys_argv)
+0
+
+.. !SECTION - Test Server
+
+Test 'User'
+------------
+
+.. SECTION - Test User
+
+
+>>> _ = env.copy2config("test-user-data/max_m_v.key.pem", ".private/max_m_v.key.pem")
+>>> _ = env.copy2data("test-user-data/M-V-HH-MaxMustermann.pki", "M-V-HH-MaxMustermann.pki")
+>>> _ = env.copy2cwd("test-user-data/M-V-HH-MaxMustermann.spki", "M-V-HH-MaxMustermann.spki")
+
+>>> import shlex
+
+>>> cmd_line = "ftwpkiunpacker -c user "
+>>> cmd_line += " max_m_v.key.pem "
+>>> cmd_line += " M-V-HH-MaxMustermann.spki "
+>>> sys_argv = shlex.split(cmd_line)[1:]
+>>> sys_argv #doctest: +NORMALIZE_WHITESPACE
+['-c', 'user', 'max_m_v.key.pem', 'M-V-HH-MaxMustermann.spki']
+
+
+>>> getpass.getpass = stubpwinput
+
+>>> getpass.getpass.reset()
+
+>>> Path('M-V-HH-MaxMustermann.spki').exists()
+True
+
+>>> prog_unpacker_certs(sys_argv)
+Enter Password: 
+0
+
+
+
+
+.. !SECTION - Test User
+
 
 .. SECTION - Teardown
 
