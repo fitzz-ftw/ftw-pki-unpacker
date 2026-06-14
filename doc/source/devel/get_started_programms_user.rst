@@ -25,14 +25,14 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 >>> del cfg
 
 
->>> test_data_dir = "data-unpacker/data-inter-base"
->>> passphraese_file_name = "inter1secret"
->>> pki_conf_file = "M-V-HH-CA.pki"
->>> pki_transport = "M-V-HH-CA.spki"
+>>> test_data_dir = "data-unpacker/data-user"
+>>> private_key_file_name = "max_m_v.key.pem"
+>>> pki_conf_file = "M-V-HH-MaxMustermann.pki"
+>>> pki_transport = "M-V-HH-MaxMustermann.spki"
 
->>> _ = env.copy2config(f"{test_data_dir}/{passphraese_file_name}",
-...     f".private/{passphraese_file_name}")
->>> _ = env.copy2config(f"{test_data_dir}/{pki_conf_file}",f".private/{pki_conf_file}")
+>>> _ = env.copy2config(f"{test_data_dir}/{private_key_file_name}",
+...     f".private/{private_key_file_name}")
+>>> _ = env.copy2data(f"{test_data_dir}/{pki_conf_file}",f"{pki_conf_file}")
 >>> _ =env.copy2cwd(f"{test_data_dir}/{pki_transport}", f"{pki_transport}")
 
 .. !SECTION - Setup Test-Environment
@@ -61,7 +61,7 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> from ftwpki.unpacker import programms
 
 
->>> sys_argv = ["-c","intermediate", "inter1secret", pki_transport]
+>>> sys_argv = ["-c","user", private_key_file_name, pki_transport]
 
 .. !SECTION - Perpare Test 
 
@@ -80,11 +80,10 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> args:UnpackerCliProtocol = parser.parse_args(sys_argv)
 
 >>> args #doctest: +NORMALIZE_WHITESPACE
-UnpackerCliArguments(cert_file='M-V-HH-CA.spki'
-configname='intermediate'
+UnpackerCliArguments(cert_file='M-V-HH-MaxMustermann.spki'
+configname='user'
 passphrase_file='None'
-private_key='inter1secret')
-
+private_key='max_m_v.key.pem')
 
 
 >>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
@@ -94,12 +93,10 @@ private_key='inter1secret')
 >>> config.set_config(args.configname)
 
 >>> config.current_configfile_entries #doctest: +NORMALIZE_WHITESPACE
-{'private_keys': '#zip#', 
- 'zip': '#config#.private', 
+{'private_keys': '#config#.private', 
+ 'zip': '#data#', 
  'certs': '#zip#', 
  'chains': '#zip#', 
- 'passphrases': '#config#.private', 
- 'policies': '#zip#', 
  'config_path': '#config#', 
  'data_path': '#data#'}
 
@@ -109,52 +106,38 @@ private_key='inter1secret')
 
 >>> ppf = args.configname == "intermediate" 
 
->>> if ppf:
-...     print("This part until '!SECTION - Passphrasefilehandling'")
-This part until '!SECTION - Passphrasefilehandling'
-
-.. SECTION - Passphrasefilehandling
-
->>> from ftwpki.baselibs.passwd import PasswordManager
->>> pwd_man = PasswordManager(private_dir=str(config.passphrases)) 
-
->>> pwd_man #doctest: +ELLIPSIS
-PasswordManager(private_dir='...ftwpki/.private')
-
-
->>> pass_phrase = pwd_man.decrypt_password_file(args.private_key, getpass.getpass("Enter Password: "))
-Enter Password: 
-
->>> pass_phrase == "lökjdfaijndbjefrzuiexhLOHioIHUOIH987621929OPLNl*'khjGZO}"
-True
->>> del pwd_man
-
-.. !SECTION - Passphrasefilehandling
-else:
-
->>> pass_phrase = getpass.getpass("Enter Password: ") #doctest: +SKIP
-Enter Password: 
+>>> ppf
+False
 
 .. SECTION - Loading private key
 
+>>> private_key_name:str = args.private_key
+
+>>> enc = b"ENCRYPTED PRIVATE" in config.private_key(private_key_name)
+
+>>> enc
+True
+
+>>> def fake_pw():
+...     print("Enter Password: ")
+...     return None
+
+
+>>> pass_phrase = getpass.getpass("Enter Password: ") if enc else fake_pw()
+Enter Password: 
+
 >>> from ftwpki.baselibs.core import load_private_key_from_pem
->>> from ftwpki.baselibs.transport import RSAPrivateKey, decrypt_transport_package
-
-Der Aufruf nutzt durch den frühen Import-Patch direkt den globalen Stub:
-
-
-
+>>> from ftwpki.baselibs.transport import RSAPrivateKey
 
 >>> private_key:RSAPrivateKey = load_private_key_from_pem(
-...     config.private_key(), 
+...     config.private_key(private_key_name), 
 ...     pass_phrase
 ... ) 
 
->>> del pass_phrase
+>>> isinstance(private_key, RSAPrivateKey)
+True
 
 .. !SECTION - Loading private key
-
-
 
 .. SECTION - Decrypting and Loading the file 
 
@@ -193,36 +176,6 @@ Der Aufruf nutzt durch den frühen Import-Patch direkt den globalen Stub:
 
 .. !SECTION - End proggramm: prog_receive_certs
 
-.. SECTION - Tests
-
->> from platformdirs import user_config_path, user_data_path
->> conf_path:Path = user_config_path(appname="ftwpki", appauthor="FitzzTeXnikWelt") 
->> public_path:Path = user_data_path(appname="ftwpki", appauthor="FitzzTeXnikWelt")
-
->> (conf_path / ".private"/ "intermed1.key.pem").is_file()
-True
-
->> (public_path / "certs"/ "ca.crt.pem").is_file()
-True
-
->> (public_path / "certs"/ "Muster-Verband-eV_Hamburg.crt.pem").is_file()
-True
-
->> (public_path / "chains" / "all.chain.pem").is_file()
-True
-
-
-
->> Path("ca.crt").is_file()
-False
-
->> Path("user.crt").is_file()
-False
-
->> Path("certificate_chain.pem").is_file()
-False
-
-.. !SECTION - Tests
 
 
 .. SECTION - Teardown

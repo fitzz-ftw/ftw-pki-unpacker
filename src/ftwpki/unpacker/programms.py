@@ -23,7 +23,6 @@ from ftwpki.unpacker.protocols import UnpackerCliProtocol
 
 
 def prog_unpacker_certs(argv: list[str] | None = None, **kwargs)->int:
-    #DOC - change?
     """
     Execute the main process for receiving and installing certificates.
 
@@ -123,8 +122,9 @@ if __name__ == "__main__":  # pragma: no cover
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
         "get_started_programms_server.rst",
+        "get_started_programms_user.rst",
         "get_started_programms_intermed.rst",
-        "get_started_run_programms_intermed.rst",
+        # "get_started_run_programms_intermed.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file

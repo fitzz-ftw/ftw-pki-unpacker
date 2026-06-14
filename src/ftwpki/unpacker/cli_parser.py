@@ -10,74 +10,46 @@ Parser for the certificate unpacker CLI, managing private key identification
 and transport package paths. (rw)
 """
 
-from argparse import Namespace
 from pathlib import Path
-from typing import cast
+from typing import TypeAlias
 
-from ftwpki.baselibs.cli_parser import ArgparseFix311, AutoHelpParserMixin, load_help_entries
-from ftwpki.unpacker.protocols import UnpackerCliProtocol
+from ftwpki.baselibs._cli_parser import _HELP, BaseArguments, PKIBaseParser, parser_factory_creator
+from ftwpki.baselibs.cli_parser import load_help_entries
 
 HELP_FILE = Path(__file__).parent.joinpath("cli_parser.help")
 
-_HELP = {}
 
 load_help_entries(_HELP, HELP_FILE)
 
 LANG = "en"
 
+class UnpackerCliArguments(BaseArguments):
+    __slots__ = ["private_key", "cert_file", "passphrase_file", "configname"]
+    helpid = ["unpacker"]
+    arg_data = {
+        "private_key": {"flags": [], "kws": {}, "pre": {"nargs": "?"}},
+        "cert_file": {"flags": [], "kws": {}, "pre": {"nargs": "?"}},
+        "passphrase_file": {"flags": [], "kws": {"nargs": "?"}, "pre": {}},
+        "configname": {"flags": ["-c", "--config-name"], "kws": {}, "pre": {}},
+    }
 
-# CLASS - UnpackerCliParser
-class UnpackerCliParser(AutoHelpParserMixin, ArgparseFix311):
-    """
-    Parser for certificate reception arguments. (rw)
+    def __init__(self) -> None:
+        super().__init__()
+        self.private_key:str=""
+        self.cert_file:str = ""
+        self.passphrase_file:str=""
+        self.configname:str=""
 
-    Handles the input for the local private key filename and the path
-    to the encrypted transport package.
-    """
+UnpCli:TypeAlias = UnpackerCliArguments
 
-    def __init__(self, *args, run_setup: bool = True, exit_on_error: bool = False, **kwargs):
-        self._is_preparser = not kwargs.get("add_help", True)
-        kwargs["exit_on_error"] = exit_on_error
-        super().__init__(*args, help_id="unpacker", help_entries=_HELP, **kwargs)
-        if run_setup:
-            self._setup_parser()
+unpacker_cli_parser = parser_factory_creator(UnpackerCliArguments)
 
-    def _setup_parser(self) -> None:
-        """
-        Configure the argument parser with unpacker-specific options. (ro)
-        """
-        self.add_argument(
-            "private_key",
-            nargs = "?" if self._is_preparser else None ,
-            help=self._help("private_key"),
-        )
-        self.add_argument(
-            "cert_file",
-            nargs="?" if self._is_preparser else None,
-            help=self._help("cert_file"),
-        )
-        self.add_argument(
-            "passphrase_file", nargs="?", default=None, help=self._help("passphrase_file"),
-        )
-        self.add_argument("-c", "--config-name", dest="configname", help=self._help("configname"))
-
-    def parse_args(
-        self, args: list[str] | None = None, namespace: Namespace | None = None
-    ) -> UnpackerCliProtocol:
-        """
-        Parse command-line arguments and cast to UnpackerCliProtocol. (ro)
-
-        :param args: List of command-line argument strings.
-        :param namespace: Existing Namespace object to populate.
-        :returns: Arguments adhering to the UnpackerCliProtocol interface.
-        """
-        return cast(UnpackerCliProtocol, super().parse_args(args, namespace))
+def UnpackerCliParser(**kwargs) -> PKIBaseParser[UnpackerCliArguments]:
+    parser: PKIBaseParser[UnpCli] = parser_factory_creator(UnpackerCliArguments)()
+    return parser
 
 
-# !CLASS - UnpackerCliParser
-
-
-def get_parser() -> UnpackerCliParser:
+def get_parser()  -> PKIBaseParser[UnpackerCliArguments]:
     """
     Factory function to retrieve a configured UnpackerCliParser instance. (ro)
 
@@ -99,8 +71,8 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        "test_new_parser.rst",
-        # "get_started_cli_parser.rst",
+        # "test_new_parser.rst",
+        "get_started_cli_parser.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file

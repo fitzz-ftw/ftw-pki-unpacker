@@ -25,7 +25,7 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 >>> del cfg
 
 
->>> test_data_dir = "test-server-data"
+>>> test_data_dir = "data-unpacker/data-server"
 >>> private_key_file_name = "member-web.key.pem"
 >>> pki_conf_file = "M-V-HH-Members.pki"
 >>> pki_transport = "M-V-HH-Members.spki"
@@ -80,11 +80,10 @@ Schritt 4: Jetzt das Modul importieren – es übernimmt sofort den globalen Pat
 >>> args:UnpackerCliProtocol = parser.parse_args(sys_argv)
 
 >>> args #doctest: +NORMALIZE_WHITESPACE
-Namespace(private_key='member-web.key.pem', 
-    cert_file='M-V-HH-Members.spki', 
-    passphrase_file=None, 
-    configname='server')
-
+UnpackerCliArguments(cert_file='M-V-HH-Members.spki'
+    configname='server'
+    passphrase_file='None'
+    private_key='member-web.key.pem')
 
 
 >>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
@@ -119,7 +118,11 @@ False
 >>> enc
 False
 
->>> pass_phrase = getpass.getpass("Enter Password: ") if enc else None; print("Enter Password: ")
+>>> def fake_pw():
+...     print("Enter Password: ")
+...     return None
+
+>>> pass_phrase = getpass.getpass("Enter Password: ") if enc else fake_pw()
 Enter Password: 
 
 >>> from ftwpki.baselibs.core import load_private_key_from_pem

@@ -25,7 +25,7 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 >>> del cfg
 
 
->>> test_data_dir = "test-ok-intermediate"
+>>> test_data_dir = "data-unpacker/data-inter-base"
 >>> passphraese_file_name = "inter1secret"
 >>> pki_conf_file = "M-V-HH-CA.pki"
 >>> pki_transport = "M-V-HH-CA.spki"
@@ -96,7 +96,7 @@ Server Test
 
 .. SECTION - Test Server
 
->>> test_data_dir = "test-server-data"
+>>> test_data_dir = "data-unpacker/data-server"
 >>> private_key_file_name = "member-web.key.pem"
 >>> pki_conf_file = "M-V-HH-Members.pki"
 >>> pki_transport = "M-V-HH-Members.spki"
@@ -117,11 +117,19 @@ Test 'User'
 ------------
 
 .. SECTION - Test User
+>>> test_data_dir = "data-unpacker/data-user"
+>>> private_key_file_name = "max_m_v.key.pem"
+>>> pki_conf_file = "M-V-HH-MaxMustermann.pki"
+>>> pki_transport = "M-V-HH-MaxMustermann.spki"
 
+>>> _ = env.copy2config(f"{test_data_dir}/{private_key_file_name}",
+...     f".private/{private_key_file_name}")
+>>> _ = env.copy2data(f"{test_data_dir}/{pki_conf_file}",f"{pki_conf_file}")
+>>> _ =env.copy2cwd(f"{test_data_dir}/{pki_transport}", f"{pki_transport}")
 
->>> _ = env.copy2config("test-user-data/max_m_v.key.pem", ".private/max_m_v.key.pem")
->>> _ = env.copy2data("test-user-data/M-V-HH-MaxMustermann.pki", "M-V-HH-MaxMustermann.pki")
->>> _ = env.copy2cwd("test-user-data/M-V-HH-MaxMustermann.spki", "M-V-HH-MaxMustermann.spki")
+>> _ = env.copy2config("test-user-data/max_m_v.key.pem", ".private/max_m_v.key.pem")
+>> _ = env.copy2data("test-user-data/M-V-HH-MaxMustermann.pki", "M-V-HH-MaxMustermann.pki")
+>> _ = env.copy2cwd("test-user-data/M-V-HH-MaxMustermann.spki", "M-V-HH-MaxMustermann.spki")
 
 >>> import shlex
 

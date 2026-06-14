@@ -28,8 +28,8 @@ class UnpackerCliProtocol(Protocol):
     """Path to the encrypted ZIP transport package (.zip.enc)."""
     configname:str
     """The name of the specific configuration section to be loaded."""
-    # DOC - new
     passphrase_file:str|None
+    """Path to the file containing the decryption passphrase."""
 
 
 # !CLASS - UnpackerCliProtocol
