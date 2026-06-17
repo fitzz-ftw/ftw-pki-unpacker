@@ -119,7 +119,7 @@ This part until '!SECTION - Passphrasefilehandling'
 >>> pwd_man = PasswordManager(private_dir=str(config.passphrases)) 
 
 >>> pwd_man #doctest: +ELLIPSIS
-PasswordManager(private_dir='...ftwpki/.private')
+PasswordManager(private_dir='...ftwpki....private')
 
 
 >>> pass_phrase = pwd_man.decrypt_password_file(args.private_key, getpass.getpass("Enter Password: "))
