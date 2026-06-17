@@ -5,10 +5,10 @@ Get started with Containers
 
 >>> remkeys = RemoteKeys()
 
->>> remkeys.items() #doctest: -SKIP
+>>> remkeys.items() #doctest: +ELLIPSIS -SKIP
 Traceback (most recent call last):
     ...
-KeyError: AttributeError("'RemoteKeys' object has no attribute '_fullchain'")
+KeyError: AttributeError("'...RemoteKeys' object has no attribute '_fullchain'")
 
 >>> from ftwpki.remotepack.container import RemotePathes
 
