@@ -51,6 +51,7 @@ Changelog = "https://github.com/fitzz-ftw/ftw-pki-unpacker/blob/main/CHANGELOG.m
 
 [project.scripts]
 ftwpkiunpacker = "ftwpki.unpacker.programms:prog_unpacker_certs"
+ftwpkiremotepack = "ftwpki.remotepack.programms:prog_remotepack"
 
 [project.optional-dependencies]
 doc = [
@@ -118,7 +119,7 @@ branch = true
 omit = ["**/_version.py",
 ]
 
-source = ["ftwpki.unpacker"]
+source = ["ftwpki.unpacker","ftwpki.remotepack", "ftwpki.userpack"]
 
 [tool.coverage.report]
 exclude_also = ["if *__name__ *=*[\"']__main__.*"]

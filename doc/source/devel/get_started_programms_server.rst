@@ -25,8 +25,8 @@ Konfiguration und erzeugt die komplette Ordnerstruktur physisch auf der Platte!
 >>> del cfg
 
 
->>> test_data_dir = "data-unpacker/data-server"
 >>> private_key_file_name = "member-web.key.pem"
+>>> test_data_dir = "data-unpacker/data-server"
 >>> pki_conf_file = "M-V-HH-Members.pki"
 >>> pki_transport = "M-V-HH-Members.spki"
 

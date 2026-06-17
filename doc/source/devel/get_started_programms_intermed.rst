@@ -130,6 +130,7 @@ True
 >>> del pwd_man
 
 .. !SECTION - Passphrasefilehandling
+
 else:
 
 >>> pass_phrase = getpass.getpass("Enter Password: ") #doctest: +SKIP
