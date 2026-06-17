@@ -1,0 +1,8 @@
+[pkcs12cli]
+
+[pkcs12cli.old]
+en = """Switch to an old unsure encryption algorythm. Needed for compatibility to \
+        unsure keyrings with weak encryption.
+        """
+[pkcs12cli.rootca]
+en = """Exports the root-CA certificate beside your certificate. Only needed if not installed."""

@@ -8,7 +8,7 @@
 {% if inheritence_diagram(fullname) %}
 
 .. container:: class-tree-diagram
-   
+
    .. autoclasstree:: {{fullname}}
       :name: {{ objname }}
       :strict:

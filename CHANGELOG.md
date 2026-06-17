@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] - 2026-06-17
+
+### Added
+- Add remotepack and userpack modules to the receiver core
+- Add optional passphrase file support for intermediate CAs
+- Introduce temporary DEV unpacking assets for testing purposes
+
+### Changed
+- Migrate CLI parser architecture to the factory pattern
+- Refactor CLI parsing logic to improve password and configuration handling
+- Enhance path safety protocols within the unpacker
+- Update pyproject.toml metadata and project dependencies
+
+### Testing
+- Add doctests for server and user unpacker scenarios
+- Include intermediate runtime documentation in the test suite
+- Document partial branch coverage and finalize core logic assertions
+
 ## [0.0.3a2] - 2026-05-18
 
 ### Added

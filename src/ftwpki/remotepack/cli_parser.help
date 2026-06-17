@@ -1,0 +1,4 @@
+[remotepack]
+
+[remotepack.format]
+en = "Format of the certificates and privatekey. DER or PEN (default: %(default)s)"

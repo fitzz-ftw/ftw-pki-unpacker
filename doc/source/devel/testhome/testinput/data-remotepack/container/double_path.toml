@@ -1,0 +1,13 @@
+[remote]
+web_usr = "wwww-user"
+web_grp = "www-group"
+
+[remote.path]
+private_key = "etc/.private"
+fullchain = "etc/public"
+rootca = "etc/public"
+
+[remote.name]
+private_key = "my_key.key"
+fullchain = "chainfull.chain"
+rootca = "caroot.cert"
